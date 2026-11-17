@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peta Ekonomi Indonesia</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Canvas 3D -->
+        <div id="canvas-container" class="canvas-container">
+            <div id="map-status" class="map-status">Memuat data…</div>
+
+            <div class="map-legend">
+                <span class="legend-bar"></span>
+                <span class="legend-text">Tinggi &amp; warna = PDRB 2024<br><small>harga konstan 2010</small></span>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>Peta Ekonomi Indonesia</h1>
+                <p class="subtitle">Eksplorasi distribusi ekonomi 38 provinsi</p>
+            </div>
+
+            <div class="sidebar-content">
+                <!-- Province Detail -->
+                <section id="province-detail" class="section hidden">
+                    <div class="section-header">
+                        <button id="back-btn" class="btn-back">← Kembali</button>
+                    </div>
+                    <div id="province-info"></div>
+                </section>
+
+                <!-- Sector Analysis (17 diorama) -->
+                <section id="sector-diorama" class="section hidden">
+                    <div class="section-header">
+                        <button id="back-from-sector-btn" class="btn-back">← Kembali</button>
+                    </div>
+                    <div id="diorama-container"></div>
+                </section>
+
+                <!-- Map Overview & Analysis -->
+                <section id="map-overview" class="section">
+                    <h2>Analisis Ekonomi</h2>
+                    <div class="analysis-tabs">
+                        <button class="tab-btn active" data-tab="summary">Ringkasan</button>
+                        <button class="tab-btn" data-tab="perspective">5 Perspektif</button>
+                    </div>
+
+                    <!-- Summary Tab -->
+                    <div id="tab-summary" class="tab-content active">
+                        <div class="stat-grid">
+                            <div class="stat-item">
+                                <span class="stat-label">Provinsi Terkaya</span>
+                                <span class="stat-value" id="richest-province">-</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Total PDRB (2024)</span>
+                                <span class="stat-value" id="total-pdrb">-</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Sektor Utama</span>
+                                <span class="stat-value" id="main-sector">-</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Rata-rata per Prov</span>
+                                <span class="stat-value" id="avg-pdrb">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Perspective Tab -->
+                    <div id="tab-perspective" class="tab-content">
+                        <div class="perspective-grid">
+                            <button class="perspective-btn" data-perspective="composition">
+                                <span class="perspective-icon">📊</span>
+                                <span class="perspective-name">Porsi</span>
+                                <span class="perspective-desc">Kontribusi sektor terhadap PDRB</span>
+                            </button>
+                            <button class="perspective-btn" data-perspective="growth">
+                                <span class="perspective-icon">📈</span>
+                                <span class="perspective-name">Pertumbuhan</span>
+                                <span class="perspective-desc">Laju pertumbuhan riil</span>
+                            </button>
+                            <button class="perspective-btn" data-perspective="contribution">
+                                <span class="perspective-icon">🎯</span>
+                                <span class="perspective-name">Sumber Pertumbuhan</span>
+                                <span class="perspective-desc">Kontribusi sektor ke pertumbuhan</span>
+                            </button>
+                            <button class="perspective-btn" data-perspective="specialization">
+                                <span class="perspective-icon">🗺️</span>
+                                <span class="perspective-name">Spesialisasi</span>
+                                <span class="perspective-desc">Location Quotient per sektor</span>
+                            </button>
+                            <button class="perspective-btn" data-perspective="deflator">
+                                <span class="perspective-icon">💱</span>
+                                <span class="perspective-name">Kenaikan Harga</span>
+                                <span class="perspective-desc">Deflator implisit</span>
+                            </button>
+                        </div>
+                        <div id="perspective-result" class="perspective-result"></div>
+                    </div>
+                </section>
+
+                <!-- Legend & Instructions -->
+                <section class="section section-footer">
+                    <h3>Panduan</h3>
+                    <ul class="instruction-list">
+                        <li>Hover & klik provinsi untuk detail</li>
+                        <li>Tinggi batang = nilai PDRB provinsi</li>
+                        <li>Warna biru → cyan = kecil → besar</li>
+                        <li>Drag untuk rotasi, scroll untuk zoom</li>
+                        <li>Esc atau klik area kosong untuk kembali</li>
+                    </ul>
+                    <div class="data-source">
+                        <small>Sumber: BPS (Badan Pusat Statistik)<br>Data 2024, harga konstan 2010</small>
+                    </div>
+                </section>
+            </div>
+        </aside>
+
+        <!-- Control Panel (bottom) -->
+        <div class="control-panel">
+            <button id="fullscreen-btn" class="control-btn" title="Fullscreen">⛶</button>
+            <button id="reset-view-btn" class="control-btn" title="Reset View">↻</button>
+        </div>
+    </div>
+
+    <!-- Three.js (lokal, tidak butuh internet) -->
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/three.module.min.js"
+      }
+    }
+    </script>
+    <!-- Diorama & App Scripts -->
+    <script type="module" src="js/app.js"></script>
+
+    <!-- Pesan bantuan kalau halaman dibuka lewat file:// (modul diblokir browser) -->
+    <script>
+        setTimeout(function () {
+            var el = document.getElementById('map-status');
+            if (el && !el.hidden && el.textContent.indexOf('Memuat') !== -1) {
+                el.className = 'map-status error';
+                el.innerHTML =
+                    'Peta tidak bisa dimuat kalau file dibuka langsung (file://).<br>' +
+                    'Jalankan lewat server lokal, misalnya:<br>' +
+                    '<code>python -m http.server 8000</code><br>' +
+                    'lalu buka <code>http://localhost:8000</code>';
+            }
+        }, 3000);
+    </script>
+</body>
+</html>
